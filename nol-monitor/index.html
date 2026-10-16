@@ -2,40 +2,57 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>我的 NOL World 分区监控</title>
+    <title>NOL World 實時分區票池監控</title>
     <style>
-        body { font-family: sans-serif; background: #f5f5f7; padding: 20px; max-width: 600px; margin: 0 auto; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f5f7; padding: 20px; max-width: 600px; margin: 0 auto; color: #333; }
         .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        h2 { margin-top: 0; font-size: 20px; color: #1d1d1f; }
         .grade-group { margin-bottom: 16px; border: 1px solid #e5e5e5; border-radius: 8px; overflow: hidden; }
-        .grade-header { background: #f0f0f5; padding: 10px 14px; font-weight: bold; display: flex; justify-content: space-between; }
-        .block-item { display: flex; justify-content: space-between; padding: 8px 14px; border-top: 1px solid #f0f0f0; }
+        .grade-header { background: #f5f5f7; padding: 12px 16px; font-weight: bold; display: flex; justify-content: space-between; }
+        .block-item { display: flex; justify-content: space-between; padding: 10px 16px; border-top: 1px solid #f0f0f0; font-size: 15px; }
+        .block-item span:last-child { font-weight: bold; color: #0071e3; }
+        .footer { text-align: center; font-size: 12px; color: #86868b; margin-top: 15px; }
     </style>
 </head>
 <body>
 <div class="card">
-    <h2>实时分区票池</h2>
-    <div id="content">正在加载数据...</div>
+    <h2>🎯 NOL World 實時分區票池</h2>
+    <div id="content">正在連接官方數據並解析分區...</div>
+    <div class="footer">每 10 秒自動刷新一次</div>
 </div>
+
 <script>
     async function loadData() {
         try {
             let res = await fetch('/api/check');
             let json = await res.json();
+            if (!json.success || !json.data) {
+                document.getElementById('content').innerText = '數據加載異常';
+                return;
+            }
+            
             let html = '';
             json.data.forEach(g => {
-                html += `<div class="grade-group"><div class="grade-header"><span>${g.gradeName}</span><span>总余票: ${g.totalAvailable}</span></div>`;
+                html += `<div class="grade-group">
+                    <div class="grade-header">
+                        <span>${g.gradeName}</span>
+                        <span>總可用估算: ${g.totalAvailable} 張</span>
+                    </div>`;
                 g.blocks.forEach(b => {
-                    html += `<div class="block-item"><span>${b.blockName}</span><span>剩余: ${b.count}张</span></div>`;
+                    html += `<div class="block-item">
+                        <span>📍 ${b.blockName}</span>
+                        <span>剩余: ${b.count} 张</span>
+                    </div>`;
                 });
                 html += `</div>`;
             });
             document.getElementById('content').innerHTML = html;
         } catch(e) {
-            document.getElementById('content').innerText = '加载失败';
+            document.getElementById('content').innerText = '網絡請求失敗';
         }
     }
     loadData();
-    setInterval(loadData, 10000); // 每10秒自动刷新一次
+    setInterval(loadData, 10000);
 </script>
 </body>
 </html>
